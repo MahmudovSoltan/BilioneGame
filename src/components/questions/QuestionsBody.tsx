@@ -1,5 +1,6 @@
 import { View, Text, TouchableOpacity, StyleSheet, FlatList } from 'react-native'
-import React, { useCallback } from 'react'
+import React, { useCallback, useState } from 'react'
+
 const questions = [
     {
         question: "What is the capital of France?",
@@ -47,72 +48,97 @@ const questions = [
         ]
     }
 ]
+
 const QuestionsBody = () => {
-    const [selectetdAnswer, setSelectedAnswer] = React.useState({});
-    const handleSelectAnswer = (answer: { text: string; correct: boolean }) => {
-        // Handle answer selection logic here
-        // console.log(answer.correct);
-        setSelectedAnswer({
-            ...selectetdAnswer,
-            [answer.text]: answer.correct
-        });
-        console.log(selectetdAnswer);
+    const [selectedAnswers, setSelectedAnswers] = useState<{ [index: number]: string }>({});
+    const [score, setScore] = useState(0);
+
+    const handleSelectAnswer = (questionIndex: number, answer: { text: string; correct: boolean }) => {
+        // Əgər artıq cavab verilibsə, heç nə etmə
+        if (selectedAnswers.hasOwnProperty(questionIndex)) return;
+
+        if (answer.correct) {
+            setScore(prev => prev + 1);
+        }
+
+        setSelectedAnswers(prev => ({
+            ...prev,
+            [questionIndex]: answer.text
+        }));
     }
-    const renderItem = useCallback(({ item }) => {
+
+    const renderItem = useCallback(({ item, index }) => {
+        const userAnswer = selectedAnswers[index];
+
         return (
             <View style={styles.questionContainer}>
-                <Text style={[styles.answerText, { textDecorationLine: 'underline', paddingBottom: 5, color: '#000', fontWeight: 'bold' }]}>
+                <Text style={[styles.answerText, styles.questionText]}>
                     {item.question}
                 </Text>
-                {item.answers.map((answer: { text: string; correct: boolean }, index: number) => (
-                    <TouchableOpacity  key={index} style={styles.button} onPress={() => handleSelectAnswer(answer)}>
-                        <Text style={styles.answerText}>
-                            {answer.text}
-                        </Text>
-                    </TouchableOpacity>
-                ))}
+                {item.answers.map((answer, i) => {
+                    const isSelected = userAnswer === answer.text;
+                    const isCorrect = answer.correct;
+
+                    let backgroundColor = '#007BFF'; // default
+                    if (userAnswer) {
+                        if (isCorrect) {
+                            backgroundColor = 'green';
+                        }
+                        if (isSelected && !isCorrect) {
+                            backgroundColor = 'red';
+                        }
+                    }
+
+                    return (
+                        <TouchableOpacity
+                            key={i}
+                            style={[styles.button, { backgroundColor }]}
+                            onPress={() => handleSelectAnswer(index, answer)}
+                            disabled={!!userAnswer}
+                        >
+                            <Text style={styles.answerText}>{answer.text}</Text>
+                        </TouchableOpacity>
+                    );
+                })}
             </View>
         )
-    }, [])
+    }, [selectedAnswers]);
+
     return (
         <View style={styles.container}>
-            <Text style={styles.title}>
-                Your Score
-            </Text>
-
+            <Text style={styles.title}>Your Score: {score}</Text>
             <FlatList
                 data={questions}
                 keyExtractor={(item, index) => index.toString()}
                 renderItem={renderItem}
                 showsVerticalScrollIndicator={true}
-
             />
-
         </View>
     )
 }
 
 export default QuestionsBody
 
-
 const styles = StyleSheet.create({
     container: {
-        // flex: 1,
         padding: 20,
         backgroundColor: '#F5FCFF',
         marginBottom: 100,
     },
     questionContainer: {
-        marginBottom: 10,
+        marginBottom: 20,
     },
-    answerContainer: {
-        marginBottom: 100,
+    questionText: {
+        textDecorationLine: 'underline',
+        paddingBottom: 5,
+        color: '#000',
+        fontWeight: 'bold',
+        fontSize: 16,
     },
     answerText: {
         fontSize: 16,
         color: '#fff',
         textAlign: 'center',
-
     },
     title: {
         fontSize: 24,
@@ -122,10 +148,8 @@ const styles = StyleSheet.create({
         color: '#333',
     },
     button: {
-        backgroundColor: '#007BFF',
         padding: 10,
         borderRadius: 5,
         marginBottom: 10,
-        textAlign: 'center',
     },
-})
+});

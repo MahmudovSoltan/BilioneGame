@@ -7,11 +7,18 @@
     "ios": "react-native run-ios",
     "lint": "eslint .",
     "start": "react-native start",
-    "test": "jest"
+    "test": "jest",
+    "generate-splash": "npx react-native-bootsplash generate --platforms android,ios src/assets/images/logo.png  ",
+    "android-upt": "cd android && gradlew clean && gradlew && cd ..",
+   "apk": "powershell -Command \"cd android; ./gradlew assembleRelease; cd ..; $d = Get-Date -Format 'yyyy-MM-dd_HH-mm'; Copy-Item 'android\\app\\build\\outputs\\apk\\release\\app-release.apk' \\\"todo_app_$d.apk\\\"\""
+
+
+
   },
   "dependencies": {
     "react": "18.3.1",
-    "react-native": "0.75.5"
+    "react-native": "0.75.5",
+    "react-native-bootsplash": "^6.3.8"
   },
   "devDependencies": {
     "@babel/core": "^7.20.0",
